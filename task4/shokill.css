@@ -1,0 +1,39 @@
+#outer {
+	display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+#middle {
+	display: table-cell;
+    vertical-align: middle;
+}
+
+#inter {
+	margin: 0 auto;
+	background-color: #ccc;
+    height: 200px;
+    width: 400px;
+}
+
+#left-round {
+	height: 50px;
+    width: 50px;
+    border-radius: 0 0 100px 0;
+    -moz-border-radius: 0 0 100px 0;
+    -webkit-border-radius: 0 0 100px 0;
+    background: #fc0;
+}
+
+#right-round {
+	height: 50px;
+    width: 50px;
+    border-radius: 0 0 100px 0;
+    -moz-border-radius: 0 0 100px 0;
+    -webkit-border-radius: 100px 0 0 0;
+    background: #fc0;
+    position: relative;
+    left: 350px;
+    top: 100px;
+}
