@@ -17,7 +17,7 @@
     width: 400px;
 }
 
-#left-round {
+#left-half-round {
 	height: 50px;
     width: 50px;
     border-radius: 0 0 100px 0;
@@ -26,7 +26,7 @@
     background: #fc0;
 }
 
-#right-round {
+#right-half-round {
 	height: 50px;
     width: 50px;
     border-radius: 0 0 100px 0;
