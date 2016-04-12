@@ -1,0 +1,227 @@
+<html>
+<head>
+	<title>王牌特工</title>
+	<style>
+    canvas {
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+        width: 528px;
+    }
+	</style>
+	<script src="pixi.js"></script>
+</head>
+<body>
+    <script>
+    var x, x_length = 17
+      , y, y_length = 22
+      , map = []
+    var blockSize = 24;
+    var renderer = PIXI.autoDetectRenderer(408, 528,{backgroundColor : 0x1099bb});
+    document.body.appendChild(renderer.view);
+
+    // create the root of the scene graph
+    var stage = new PIXI.Container();
+    var mousePosition = renderer.plugins.interaction.mouse.global;
+    var background = PIXI.Sprite.fromImage('assets/background.png');
+    background.width = renderer.width;
+    background.height = renderer.height;
+    stage.addChild(background);
+
+    var player = PIXI.Sprite.fromImage('assets/bunny.png');
+    var door = PIXI.Sprite.fromImage('assets/door.png');
+    var block = new PIXI.Graphics();
+
+    init();
+
+    // init function regenerate sence
+    function init() {
+        init_map();
+        player.position.set(192,0);
+        door.position.set(192,504);
+        background.interactive = true;
+        background.on('mousedown', onDown);
+        //support touch
+        background.on('touchstart', onDown);
+
+        generate_block();
+
+        stage.addChild(player);
+        stage.addChild(door);
+        stage.addChild(block);
+    }
+    function init_map()
+    {
+        // Don't be lazy
+        for (x = 0; x < x_length; x++) {
+            map [x] = []
+            for (y = 0; y < y_length; y++) {
+                map[x][y] = 0;
+            }
+        }
+    }
+
+    // generate random block and set map data
+    function generate_block()
+    {
+        block.clear();
+        for(k=0;k<8;k++)
+        {
+            RandomBlock();
+        }
+        function RandomBlock() {
+            var x_block = rnd(2,5);
+            var y_block = rnd(3,6);
+            var node_x = rnd(0,17);
+            var node_y = rnd(0,22);
+
+            function check_block()
+            {
+                if(node_x == 8 && node_y == 0 || node_x < 8 && node_x + x_block > 8 && node_y == 0 ||
+                node_x == 8 && node_y + y_block > 21 || node_x < 8 && node_x + x_block > 8 && node_y + y_block > 21) {
+                    return false;
+                }
+                return true;
+            }
+            if(check_block())
+            {
+                for(var i = 0; i < x_block && i + node_x < 17 ; i++ )
+                {
+                    for(var j = 0; j < y_block && j+ node_y < 22 ; j++)
+                    {
+                        // add block to map data
+                        map[i + node_x][j + node_y] = 1;
+                    }
+                }
+                // set a fill and a line style again and draw a rectangle
+                //block.lineStyle(1, 0x0000FF, 1);
+                block.beginFill(0xFF700B, 1);
+                block.drawRect(node_x * blockSize, node_y * blockSize, x_block * blockSize, y_block * blockSize);
+            }
+        }
+    }
+
+    // mousedown function
+    function onDown (eventData) {
+        var start_node = {x: player.position.x / blockSize, y: player.position.y / blockSize};
+        var end_node = {x: Math.floor(mousePosition.x / blockSize), y: Math.floor(mousePosition.y / blockSize)};
+
+        if(map[end_node.x][end_node.y] != 1)
+        {
+            search_path(start_node, end_node);
+        }
+    }
+
+    // a star search_path algorithm
+    function search_path(start_node, end_node) {
+        var open_list = new Array();
+        var close_list = new Array();
+        var result = new Array();
+
+        var current_node = start_node;
+        var last_node = start_node;
+
+        do{
+            find_next_node();
+        }while (current_node.x != end_node.x || current_node.y != end_node.y)
+
+        function find_next_node()
+        {
+            // declare the surrounding nodes
+            var left_up_node = {x: current_node.x - 1 , y: current_node.y - 1};
+            var left_node = {x: current_node.x - 1 , y: current_node.y};
+            var left_down_node = {x: current_node.x - 1 , y: current_node.y + 1};
+            var up_node = {x: current_node.x, y: current_node.y - 1};
+            var down_node = {x: current_node.x, y: current_node.y + 1};
+            var right_up_node = {x: current_node.x + 1 , y: current_node.y - 1};
+            var right_node = {x: current_node.x + 1 , y: current_node.y};
+            var right_down_node = {x: current_node.x + 1 , y: current_node.y + 1};
+            var nodes = new Array(left_up_node, left_node, left_down_node, up_node, down_node, right_up_node, right_node, right_down_node);
+
+            // selected nodes and push it in a list
+            for(var i = 0; i < nodes.length; i++)
+            {
+                if(nodes[i].x < 17 && nodes[i].x >= 0 && nodes[i].y < 22 && nodes[i].y >= 0 && map[nodes[i].x][nodes[i].y] === 0 &&
+                !(last_node.x == nodes[i].x && last_node.y == nodes[i].y))
+                {
+                    open_list.push(nodes[i]);
+                }
+            }
+            // F = G + H
+            for(i = 0; i < open_list.length; i++)
+            {
+                var F, G, H;
+                if(Math.abs(current_node.x - open_list[i].x) === 1 && Math.abs(current_node.y - open_list[i].y) === 1)
+                {
+                    G = 14;
+                }else {
+                    G = 10;
+                }
+                H = (Math.abs(end_node.x - open_list[i].x) + Math.abs(end_node.y - open_list[i].y)) * 10;
+                F = G + H;
+                // calculator the result and put it in result array
+                result.push(F);
+            }
+
+            last_node = current_node;
+            close_list.push(open_list[indexOfSmallest(result)]);
+            current_node = open_list[indexOfSmallest(result)];
+            open_list = [];
+            result = [];
+        }
+        move(close_list);
+    }
+
+    // player move function
+    function move(close_list) {
+        var path_count = 0;
+
+        function playermove() {
+            player.position.set(close_list[path_count].x * 24, close_list[path_count].y * 24);
+            path_count++;
+            if(path_count == close_list.length)
+            {
+                clearInterval(timer);
+            }
+            if(isIntersecting(player, door))
+            {
+                stage.removeChild(door);
+                init();
+            }
+        }
+        // sprite collision
+        isIntersecting = function(r1, r2) {
+            return !(r2.x > (r1.x + r1.width)  ||
+            (r2.x + r2.width ) < r1.x ||
+            r2.y > (r1.y + r1.height) ||
+            (r2.y + r2.height) < r1.y);
+        }
+        var timer = setInterval(playermove,"60");
+    }
+    // start animating
+    animate();
+
+    function animate() {
+        requestAnimationFrame(animate);
+        // render the root container
+        renderer.render(stage);
+    }
+
+    //utils function return the least index of array
+    function indexOfSmallest(a) {
+        var lowest = 0;
+        for (var i = 1; i < a.length; i++) {
+            if (a[i] < a[lowest]) lowest = i;
+        }
+        return lowest;
+    }
+
+    //random a int from start to end
+    function rnd(start, end) {
+        return Math.floor(Math.random() * (end - start) + start);
+    }
+    </script>
+</body>
+</html>
