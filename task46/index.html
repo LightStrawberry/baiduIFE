@@ -19,6 +19,8 @@
       , y, y_length = 22
       , map = []
     var blockSize = 24;
+    var player_move = false;
+
     var renderer = PIXI.autoDetectRenderer(408, 528,{backgroundColor : 0x1099bb});
     document.body.appendChild(renderer.view);
 
@@ -52,30 +54,21 @@
         stage.addChild(door);
         stage.addChild(block);
     }
+    //init map
     function init_map()
-    {
-        // Don't be lazy
-        for (x = 0; x < x_length; x++) {
-            map [x] = []
-            for (y = 0; y < y_length; y++) {
-                map[x][y] = 0;
-            }
-        }
-    }
+    { for (x = 0; x < x_length; x++) { map [x] = [] for (y = 0; y < y_length; y++) { map[x][y] = 0;} } }
 
     // generate random block and set map data
     function generate_block()
     {
+        var block_count = rnd(8, 12);
         block.clear();
-        for(k=0;k<8;k++)
-        {
-            RandomBlock();
-        }
+        for(k=0; k<block_count; k++) { RandomBlock();}
         function RandomBlock() {
-            var x_block = rnd(2,5);
-            var y_block = rnd(3,6);
-            var node_x = rnd(0,17);
-            var node_y = rnd(0,22);
+            var x_block = rnd(3, 5);
+            var y_block = rnd(3, 6);
+            var node_x = rnd(0, 17);
+            var node_y = rnd(0, 22);
 
             function check_block()
             {
@@ -108,27 +101,53 @@
         var start_node = {x: player.position.x / blockSize, y: player.position.y / blockSize};
         var end_node = {x: Math.floor(mousePosition.x / blockSize), y: Math.floor(mousePosition.y / blockSize)};
 
-        if(map[end_node.x][end_node.y] != 1)
+        if(map[end_node.x][end_node.y] != 1 && !player_move)
         {
-            search_path(start_node, end_node);
+            var path_node = search_path(start_node, end_node);
+            var path = pathTo(path_node);
+            // accoding the path to move player
+            move(path);
         }
+    }
+
+    //accoding to the end_node to find the way
+    function pathTo(node) {
+        var curr = node;
+        var path = [];
+        while (curr.parent) {
+            path.unshift(curr);
+            curr = curr.parent;
+        }
+        return path;
     }
 
     // a star search_path algorithm
     function search_path(start_node, end_node) {
         var open_list = new Array();
         var close_list = new Array();
-        var result = new Array();
-
         var current_node = start_node;
-        var last_node = start_node;
 
-        do{
+        // init first add to open_list
+        open_list.push(start_node);
+
+        // loop until find the endnode
+        while (open_list.length > 0)
+        {
             find_next_node();
-        }while (current_node.x != end_node.x || current_node.y != end_node.y)
+            if(current_node.x == end_node.x && current_node.y == end_node.y) {
+                return current_node;
+            }
+        }
 
         function find_next_node()
         {
+            // set current_node first
+            current_node = open_list[indexOfSmallest(open_list)];
+            // remove current_node from open_list
+            removeFromArray(current_node, open_list);
+            // add current_node to close_list
+            close_list.push(current_node);
+
             // declare the surrounding nodes
             var left_up_node = {x: current_node.x - 1 , y: current_node.y - 1};
             var left_node = {x: current_node.x - 1 , y: current_node.y};
@@ -138,40 +157,56 @@
             var right_up_node = {x: current_node.x + 1 , y: current_node.y - 1};
             var right_node = {x: current_node.x + 1 , y: current_node.y};
             var right_down_node = {x: current_node.x + 1 , y: current_node.y + 1};
-            var nodes = new Array(left_up_node, left_node, left_down_node, up_node, down_node, right_up_node, right_node, right_down_node);
+            // add to neighbours
+            var neighbours = new Array(left_up_node, left_node, left_down_node, up_node, down_node, right_up_node, right_node, right_down_node);
 
             // selected nodes and push it in a list
-            for(var i = 0; i < nodes.length; i++)
+            for(var i = 0; i < neighbours.length; i++)
             {
-                if(nodes[i].x < 17 && nodes[i].x >= 0 && nodes[i].y < 22 && nodes[i].y >= 0 && map[nodes[i].x][nodes[i].y] === 0 &&
-                !(last_node.x == nodes[i].x && last_node.y == nodes[i].y))
-                {
-                    open_list.push(nodes[i]);
-                }
-            }
-            // F = G + H
-            for(i = 0; i < open_list.length; i++)
-            {
+                var neighbor = neighbours[i];
                 var F, G, H;
-                if(Math.abs(current_node.x - open_list[i].x) === 1 && Math.abs(current_node.y - open_list[i].y) === 1)
+                // 45 degrees angle
+                if(Math.abs(current_node.x - neighbor.x) === 1 && Math.abs(current_node.y - neighbor.y) === 1)
                 {
+                    // Take diagonal weight into consideration. sqrt(2)
                     G = 14;
                 }else {
                     G = 10;
                 }
-                H = (Math.abs(end_node.x - open_list[i].x) + Math.abs(end_node.y - open_list[i].y)) * 10;
+                H = (Math.abs(end_node.x - neighbor.x) + Math.abs(end_node.y - neighbor.y)) * 10;
                 F = G + H;
-                // calculator the result and put it in result array
-                result.push(F);
-            }
+                neighbor['F'] =  F;
+                neighbor['G'] =  G;
+                neighbor['H'] =  H;
+                neighbor['parent'] = current_node;
 
-            last_node = current_node;
-            close_list.push(open_list[indexOfSmallest(result)]);
-            current_node = open_list[indexOfSmallest(result)];
-            open_list = [];
-            result = [];
+                // is this block can't pass ?
+                var isWall = function() { return neighbor.x > 16 || neighbor.x < 0 || neighbor.y > 21 || neighbor.y < 0 || map[neighbor.x][neighbor.y] === 1 };
+
+                if (checkNodeInList(close_list, neighbor) || isWall()) {
+                    // Not a valid node to process, skip to next neighbor.
+                    continue;
+                }
+
+                //is empty?
+                if(open_list.length == 0)
+                {
+                    open_list.push(neighbor);
+                }else if (checkNodeInList(open_list, neighbor)) {
+                    var index = indexNodeInList(open_list, neighbor);
+                    if(current_node.G + neighbor.G < open_list[index].G)
+                    {
+                        //update open_list
+                        neighbor.parent = current_node;
+                        open_list[index].G = current_node.G + neighbor.G;
+                        open_list[index].F = open_list[index].G + open_list[index].H;
+                    }
+                    continue;
+                } else if (!checkNodeInList(open_list, neighbor)) {
+                    open_list.push(neighbor);
+                }
+            }
         }
-        move(close_list);
     }
 
     // player move function
@@ -179,15 +214,18 @@
         var path_count = 0;
 
         function playermove() {
-            player.position.set(close_list[path_count].x * 24, close_list[path_count].y * 24);
+            playermove = true;
+            player.position.set(close_list[path_count].x * blockSize, close_list[path_count].y * blockSize);
             path_count++;
-            if(path_count == close_list.length)
+            if(path_count === close_list.length)
             {
+                playermove = false;
                 clearInterval(timer);
             }
             if(isIntersecting(player, door))
             {
                 stage.removeChild(door);
+                clearInterval(timer);
                 init();
             }
         }
@@ -213,14 +251,50 @@
     function indexOfSmallest(a) {
         var lowest = 0;
         for (var i = 1; i < a.length; i++) {
-            if (a[i] < a[lowest]) lowest = i;
+            if (a[i]['F'] < a[lowest]['F']) lowest = i;
         }
         return lowest;
     }
 
-    //random a int from start to end
+    // random a int from start to end
     function rnd(start, end) {
         return Math.floor(Math.random() * (end - start) + start);
+    }
+
+    // return the index of array
+    function indexOf (val, arr) {
+        for(var i = 0; i < arr.length; i++){
+            if(arr[i] == val){return i;}
+        }
+        return -1;
+    }
+
+    // utils function remove from array by value
+    function removeFromArray (val, arr) {
+        var index = indexOf(val, arr);
+        if(index > -1){arr.splice(index,1);}
+    }
+
+    // a utils function use to check the node is not in the list
+    function checkNodeInList(list, node)
+    {
+        for(var i = 0; i < list.length; i++)
+        {if(node.x === list[i].x && node.y === list[i].y) return true;}
+        return false;
+    }
+
+    // return the indexof list
+    function indexNodeInList(list, node)
+    {
+        var i;
+        for(i = 0; i < list.length; i++)
+        {
+            if(node.x == list[i].x && node.y == list[i].y)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
     </script>
 </body>
