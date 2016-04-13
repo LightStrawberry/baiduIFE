@@ -56,7 +56,15 @@
     }
     //init map
     function init_map()
-    { for (x = 0; x < x_length; x++) { map [x] = [] for (y = 0; y < y_length; y++) { map[x][y] = 0;} } }
+    {
+        for (x = 0; x < x_length; x++) {
+            map[x] = []
+            for (y = 0; y < y_length; y++)
+            {
+                map[x][y] = 0;
+            }
+        }
+    }
 
     // generate random block and set map data
     function generate_block()
