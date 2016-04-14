@@ -20,6 +20,7 @@
       , map = []
     var blockSize = 24;
     var player_move = false;
+    var timer;
 
     var renderer = PIXI.autoDetectRenderer(408, 528,{backgroundColor : 0x1099bb});
     document.body.appendChild(renderer.view);
@@ -31,10 +32,18 @@
     background.width = renderer.width;
     background.height = renderer.height;
     stage.addChild(background);
+    background.interactive = true;
+    background.on('mousedown', onDown);
+    //support touch
+    background.on('touchstart', onDown);
 
     var player = PIXI.Sprite.fromImage('assets/bunny.png');
     var door = PIXI.Sprite.fromImage('assets/door.png');
     var block = new PIXI.Graphics();
+
+    stage.addChild(player);
+    stage.addChild(door);
+    stage.addChild(block);
 
     init();
 
@@ -43,16 +52,8 @@
         init_map();
         player.position.set(192,0);
         door.position.set(192,504);
-        background.interactive = true;
-        background.on('mousedown', onDown);
-        //support touch
-        background.on('touchstart', onDown);
-
-        generate_block();
-
-        stage.addChild(player);
         stage.addChild(door);
-        stage.addChild(block);
+        generate_block();
     }
     //init map
     function init_map()
@@ -111,6 +112,10 @@
 
         if(map[end_node.x][end_node.y] != 1 && !player_move)
         {
+            var interval_id = window.setInterval("", 9999); // Get a reference to the last
+            for (var i = 1; i < interval_id; i++){
+                window.clearInterval(i);
+            }
             var path_node = search_path(start_node, end_node);
             var path = pathTo(path_node);
             // accoding the path to move player
@@ -218,33 +223,37 @@
     }
 
     // player move function
-    function move(close_list) {
+    function move(path) {
         var path_count = 0;
+        timer = setInterval(playermove,"60");
 
         function playermove() {
-            playermove = true;
-            player.position.set(close_list[path_count].x * blockSize, close_list[path_count].y * blockSize);
-            path_count++;
-            if(path_count === close_list.length)
+            if(path_count >= path.length)
             {
-                playermove = false;
+                player_move = false;
                 clearInterval(timer);
-            }
-            if(isIntersecting(player, door))
-            {
-                stage.removeChild(door);
-                clearInterval(timer);
-                init();
+            } else {
+                player_move = true;
+                player.position.set(path[path_count].x * blockSize, path[path_count].y * blockSize);
+                if(isIntersecting(player, door))
+                {
+                    clearInterval(timer);
+                    player_move = false;
+                    stage.removeChild(door);
+                    init();
+                }
+                path_count++;
             }
         }
+
+        var Cushioning = 0.5;
         // sprite collision
         isIntersecting = function(r1, r2) {
-            return !(r2.x > (r1.x + r1.width)  ||
-            (r2.x + r2.width ) < r1.x ||
-            r2.y > (r1.y + r1.height) ||
-            (r2.y + r2.height) < r1.y);
+            return !(r2.x + Cushioning > (r1.x + r1.width) ||
+            (r2.x - Cushioning  + r2.width ) < r1.x ||
+            r2.y + Cushioning > (r1.y + r1.height) ||
+            (r2.y - Cushioning + r2.height) < r1.y );
         }
-        var timer = setInterval(playermove,"60");
     }
     // start animating
     animate();
