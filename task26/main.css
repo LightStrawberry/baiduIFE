@@ -1,0 +1,33 @@
+.circle {
+	 border-radius: 50%;
+	 width: 200px;
+	 height: 200px;
+   background-color: red;
+   /* 宽度和高度需要相等 */
+}
+
+.plant {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -100px;
+    margin-top: -100px;
+}
+
+.ship {
+    height: 50px;
+    width: 100px;
+    background-color: green;
+    border-radius: 20px;
+    margin: auto;
+    position: relative;
+    top: 200px;  //这个是用来设置高度的
+    left: -50px;
+    text-align: center;
+}
+
+.center {
+    position: relative;
+    top: 75px;
+    text-align: center;
+}
