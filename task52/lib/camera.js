@@ -8,39 +8,8 @@ var Camera = function(game, position) {
 	this.minimumDistanceX = 0;
 	this.minimumDistanceY = 0;
 	this.followObject = null;
-	/**
-	 * @property {Boundary} viewportBoundary - The boundary that represents the viewport
-	 */
-	this.viewportBoundary = new Boundary(
-		// this.position.x * (game.settings.tileSize * this.game.settings.zoom),
-		// this.position.y * (game.settings.tileSize * this.game.settings.zoom),
-        this.position.x * (16 * 2),
-		this.position.y * (16 * 2),
-		this.viewportWidth,
-		this.viewportHeight
-	);
-	/**
-	 * @property {Boundary} mapBoundary - The boundary that represents the viewport
-	 */
-	this.mapBoundary = new Boundary(
-		0,
-		0,
-		// game.settings.tilesX * (game.settings.tileSize * this.game.settings.zoom),
-		// game.settings.tilesY * (game.settings.tileSize * this.game.settings.zoom)
-        10 * 16 * 2,
-        10 * 16 * 2
-	);
 };
-
 Camera.prototype = {
-	/**
-	 * Function to call when you want to follow a specific entity
-	 * @protected
-	 *
-	 * @param {Entity} followEntity - The entity that should be followed by the camera, this entity is required to have the position component
-	 * @param {Number} minimumDistanceX - The minimal distance from horizontal borders before the camera starts to move
-	 * @param {Number} minimumDistanceY - The minimal distance from vertical borders before the camera starts to move
-	 */
 	follow: function(followEntity, minimumDistanceX, minimumDistanceY) {
 
 		//Set the follow object to be the object that's passed along
@@ -51,7 +20,6 @@ Camera.prototype = {
 		this.minimumDistanceX = 0;
 		this.minimumDistanceY = 0;
 	},
-
 	update: function() {
 		//Check if the camera even has to move
 		if(this.followObject !== null) {
