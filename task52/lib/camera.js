@@ -3,8 +3,8 @@
 var Camera = function(game, position) {
 	this.game = game;
 	this.position = position
-	this.viewportWidth = 512;
-	this.viewportHeight = 512;
+	this.viewportWidth = window.innerWidth;
+	this.viewportHeight = window.innerHeight;
 	this.minimumDistanceX = 0;
 	this.minimumDistanceY = 0;
 	this.followObject = null;
@@ -25,7 +25,7 @@ Camera.prototype = {
 		if(this.followObject !== null) {
 			// Define the variables needed for moving the camera
 			// var tileSize = this.game.map.settings.tileSize * this.game.settings.zoom;
-            var tileSize = 1 * 2;
+            var tileSize = 1 * 3;
 			//Calculate the center position of the object that we are following
 
             var followCenterX = (this.followObject.x * tileSize) + (tileSize / 2);

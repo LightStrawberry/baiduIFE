@@ -6,7 +6,7 @@ function initkeyboard() {
         down = keyboard(40);
     var nextPosition = {};
     function checkCollision(nextPosition) {
-        if(map[nextPosition.x][nextPosition.y] == 0) return false;
+        if(map[nextPosition.x][nextPosition.y] == 2) return false;
         return true;
     }
     //Left arrow key `press` method
@@ -15,6 +15,7 @@ function initkeyboard() {
         if(checkCollision(nextPosition)) {
             player.x += -blockSize;
             player.y += 0;
+            drawLOS();
         }
     };
     //Up
@@ -23,6 +24,7 @@ function initkeyboard() {
         if(checkCollision(nextPosition)) {
             player.x += 0;
             player.y += -blockSize;
+            drawLOS();
         }
     };
     //Right
@@ -31,6 +33,7 @@ function initkeyboard() {
         if(checkCollision(nextPosition)) {
             player.x += blockSize;
             player.y += 0;
+            drawLOS();
         }
     };
     //Down
@@ -39,6 +42,7 @@ function initkeyboard() {
         if(checkCollision(nextPosition)) {
             player.x += 0;
             player.y += blockSize;
+            drawLOS();
         }
     };
 }

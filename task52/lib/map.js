@@ -54,7 +54,6 @@ function select_room() {
         map[x] = []
         for (y = 0; y < map_height; y++) map[x][y] = 0;
     }
-
     for(var i =0; i < rooms.length; i++) {
         if(rooms[i].width >= 4 && rooms[i].height >= 4) {
             select_rooms.push(rooms[i]);
@@ -108,7 +107,7 @@ function check_edge(length) {
 function min_spanning_trees() {
     graph = new Graph(edges, select_rooms.length);
     spanningTree = prim(graph);
-    console.log(spanningTree);
+    //console.log(spanningTree);
 
     for(var i = 0; i < spanningTree.edges.length; i++) {
         var close_x = false;
@@ -212,14 +211,16 @@ function min_spanning_trees() {
                 floor.position = new PIXI.Point(i * blockSize,j * blockSize);
                 stage.addChild(floor);
                 if(map[i-1][j] == 0) {
-                    var floor = PIXI.Sprite.fromImage("images/wall.png");
-                    floor.position = new PIXI.Point((i-1) * blockSize,j * blockSize);
-                    stage.addChild(floor);
+                    var wall = PIXI.Sprite.fromImage("images/wall.png");
+                    wall.position = new PIXI.Point((i-1) * blockSize,j * blockSize);
+                    stage.addChild(wall);
+                    map[i-1][j] = 2;
                 }
                 if(map[i+1][j] == 0) {
-                    var floor = PIXI.Sprite.fromImage("images/wall.png");
-                    floor.position = new PIXI.Point((i+1) * blockSize,j * blockSize);
-                    stage.addChild(floor);
+                    var wall = PIXI.Sprite.fromImage("images/wall.png");
+                    wall.position = new PIXI.Point((i+1) * blockSize,j * blockSize);
+                    stage.addChild(wall);
+                    map[i+1][j] = 2;
                 }
             }
         }
@@ -227,9 +228,10 @@ function min_spanning_trees() {
     for (var i = 0; i <  map_width; i++) {
         for (var j = 0; j < map_height; j++) {
             if((map[i][j+1] == 1 && map[i][j] != 1) || (map[i][j-1] == 1 && map[i][j] != 1)) {
-                var floor = PIXI.Sprite.fromImage("images/wall.png");
-                floor.position = new PIXI.Point(i * blockSize,j * blockSize);
-                stage.addChild(floor);
+                var wall = PIXI.Sprite.fromImage("images/wall.png");
+                wall.position = new PIXI.Point(i * blockSize,j * blockSize);
+                stage.addChild(wall);
+                map[i][j] = 2;
             }
         }
     }
